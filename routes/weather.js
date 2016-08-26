@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var request = require('request');
 var cheerio = require('cheerio');
+var xml = require('xml');
 var dao = require('../controller/dao');
 
 router.get('/:sido_name', function(req, res, next) {
@@ -65,6 +66,17 @@ router.get('/:sido_name', function(req, res, next) {
           });
     });
 });
-
+router.get('/hour/:sido_name', function(req, res, next) {
+  var sido_name = req.params.sido_name.trim();
+  dao.conn.query('SELECT x,y from sido where sido_kr = ?',sido_name, function(err, rows, fields) {
+      if (!err) {
+        console.log(rows[0].x+','+rows[0].y);
+            request.get({url: 'http://www.kma.go.kr/wid/queryDFS.jsp?gridx='+rows[0].x+'&gridy='+rows[0].y}, function(err, response, body){
+                res.header('Content-Type','text/xml').send(body);
+            });
+      } else {
+          console.log('Error while performing Query.');
+      }
+  });
+});
 module.exports = router;
-
